@@ -47,6 +47,8 @@ export async function POST(request: NextRequest) {
       console.warn("Database registration failed (Using Mock Fallback):", dbError.message);
       
       // Fallback: Return a mock user object so the UI doesn't break
+      // --- FIX: Added "user = {" below ---
+      user = {
         id: "mock-user-id-" + Date.now(),
         fullName,
         email,
