@@ -1,0 +1,51 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma/client" // Default is fine if not specified
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String
+  password  String // Note: In a real app, hash this!
+  role      String // "citizen", "officer", "auditor"
+  didUri    String? // We will store the mocked Atala PRISM DID here
+  createdAt DateTime @default(now())
+
+  transactions Transaction[]
+  credentials  Credential[]
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      String
+  description String
+  type        String
+  status      String
+  txHash      String // This saves the Cardano Blockchain Hash
+  date        DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Credential {
+  id         String    @id @default(uuid())
+  type       String
+  name       String
+  issuer     String
+  verified   Boolean   @default(false)
+  hash       String
+  issuedDate DateTime  @default(now())
+  expiryDate DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}

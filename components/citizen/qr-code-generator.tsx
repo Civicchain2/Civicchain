@@ -12,19 +12,18 @@ interface QRCodeGeneratorProps {
 export function QRCodeGenerator({ value, size = 256, level = "M", includeMargin = true }: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  useEffect(() => {
-    if (!canvasRef.current) return
+   useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
 
     // Dynamic import of qr code library
     import("qrcode")
       .then((QRCode) => {
         QRCode.toCanvas(
-          canvasRef.current,
+          canvas,
           value,
           {
             errorCorrectionLevel: level,
-            type: "image/png",
-            quality: 0.95,
             margin: includeMargin ? 2 : 0,
             width: size,
             color: {
@@ -39,7 +38,7 @@ export function QRCodeGenerator({ value, size = 256, level = "M", includeMargin 
       })
       .catch(() => {
         // Show error message in canvas
-        const ctx = canvasRef.current?.getContext("2d")
+        const ctx = canvas.getContext("2d")
         if (ctx) {
           ctx.fillStyle = "#4c1d95"
           ctx.fillRect(0, 0, size, size)

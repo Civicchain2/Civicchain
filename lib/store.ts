@@ -6,6 +6,12 @@ export interface User {
   fullName: string
   email: string
   role: "citizen" | "officer" | "auditor"
+  nin?: string
+  ninVerified?: boolean
+  cardanoId?: string
+  walletAddress?: string
+  walletVerified?: boolean
+  walletType?: "nami" | "eternl" | "cardano"
 }
 
 export interface DidCredential {
@@ -38,10 +44,12 @@ export interface Transaction {
 }
 
 export interface VerificationStatus {
-  id: number
-  name: string
+  createdAt: string | number | Date
+  id: string
+  type: string
   status: "verified" | "pending" | "rejected"
-  date: string
+  document_hash?: string
+  created_at: string
 }
 
 interface AuthStore {
@@ -49,6 +57,8 @@ interface AuthStore {
   setUser: (user: User | null) => void
   logout: () => void
   isAuthenticated: () => boolean
+  connectWallet: (walletAddress: string, walletType: "nami" | "eternl" | "cardano") => void
+  disconnectWallet: () => void
 }
 
 interface DataStore {
@@ -57,6 +67,7 @@ interface DataStore {
   setTransactions: (transactions: Transaction[]) => void
   setVerifications: (verifications: VerificationStatus[]) => void
   addTransaction: (transaction: Transaction) => void
+  addVerification: (verification: VerificationStatus) => void
 }
 
 interface DidStore {
@@ -74,6 +85,28 @@ export const useAuthStore = create<AuthStore>()(
       setUser: (user) => set({ user }),
       logout: () => set({ user: null }),
       isAuthenticated: () => get().user !== null,
+      connectWallet: (walletAddress, walletType) =>
+        set((state) => ({
+          user: state.user
+            ? {
+                ...state.user,
+                walletAddress,
+                walletType,
+                walletVerified: true,
+              }
+            : null,
+        })),
+      disconnectWallet: () =>
+        set((state) => ({
+          user: state.user
+            ? {
+                ...state.user,
+                walletAddress: undefined,
+                walletType: undefined,
+                walletVerified: false,
+              }
+            : null,
+        })),
     }),
     {
       name: "civicchain-auth",
@@ -89,6 +122,10 @@ export const useDataStore = create<DataStore>((set, get) => ({
   addTransaction: (transaction) =>
     set({
       transactions: [transaction, ...get().transactions],
+    }),
+  addVerification: (verification) =>
+    set({
+      verifications: [verification, ...get().verifications],
     }),
 }))
 

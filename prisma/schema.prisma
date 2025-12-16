@@ -1,50 +1,99 @@
-// prisma/schema.prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+
+enum UserRole {
+  CITIZEN
+  OFFICER
+  AUDITOR
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+enum CredentialType {
+  IDENTITY
+  LICENSE
+  CERTIFICATE
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String    @id @default(uuid())
+  email     String    @unique
   fullName  String
-  password  String   // Note: In a real app, hash this!
-  role      String   // "citizen", "officer", "auditor"
-  didUri    String?  // We will store the mocked Atala PRISM DID here
-  createdAt DateTime @default(now())
-  
+  password  String
+  role      UserRole
+  didUri    String?
+  createdAt DateTime  @default(now())
+
   transactions Transaction[]
   credentials  Credential[]
+  verifications Verification[] 
+
+  @@index([email])
 }
 
 model Transaction {
-  id          String   @id @default(uuid())
+  id          String              @id @default(uuid())
   amount      String
   description String
-  type        String   
-  status      String   
-  txHash      String   // This saves the Cardano Blockchain Hash
-  date        DateTime @default(now())
-  
+  type        TransactionType
+  status      TransactionStatus
+  txHash      String
+  date        DateTime            @default(now())
+
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User                @relation(fields: [userId], references: [id])
 }
 
 model Credential {
-  id          String   @id @default(uuid())
-  type        String   
+  id          String          @id @default(uuid())
+  type        CredentialType
   name        String
   issuer      String
-  verified    Boolean  @default(false)
-  hash        String   
-  issuedDate  DateTime @default(now())
+  verified    Boolean         @default(false)
+  hash        String
+  issuedDate  DateTime        @default(now())
   expiryDate  DateTime?
-  
+
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User            @relation(fields: [userId], references: [id])
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model Verification {
+  id        String             @id @default(uuid())
+  type      String
+  status    VerificationStatus @default(PENDING)
+  userId    String
+  createdAt DateTime           @default(now())
+
+  user      User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }

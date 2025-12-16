@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@/generated/prisma/client"
 
 // 1. Initialize Prisma Client (Database Connection)
 const globalForPrisma = global as unknown as { prisma: PrismaClient };

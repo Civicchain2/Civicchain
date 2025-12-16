@@ -7,6 +7,8 @@ import { PaymentCard } from "@/components/citizen/payment-card"
 import { VerificationStatus } from "@/components/citizen/verification-status"
 import { TransactionHistory } from "@/components/citizen/transaction-history"
 import { QuickActions } from "@/components/citizen/quick-actions"
+import { DidOverview } from "@/components/citizen/did-overview"
+import { useAuthStore } from "@/lib/store"
 
 export default function CitizenDashboard() {
   const router = useRouter()
@@ -60,6 +62,11 @@ export default function CitizenDashboard() {
           <div>
             <PaymentCard />
           </div>
+        </div>
+
+        {/* DID Overview Section */}
+        <div className="mb-8">
+          <DidOverview />
         </div>
 
         {/* Middle Section: Verification Status */}

@@ -18,6 +18,7 @@ export function RegisterForm() {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
+    nin: "",
     password: "",
     confirmPassword: "",
     role: "",
@@ -25,6 +26,9 @@ export function RegisterForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
+    if (name === "nin" && !/^\d{0,11}$/.test(value)) {
+      return
+    }
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -42,6 +46,11 @@ export function RegisterForm() {
       return
     }
 
+    if (formData.nin.length !== 11) {
+      setError("NIN must be 11 digits")
+      return
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match")
       return
@@ -53,6 +62,27 @@ export function RegisterForm() {
     }
 
     setLoading(true)
+
+    
+    // try {
+    //   const supabase = createClient()
+
+    //   // Sign up the user with Supabase Auth
+    //   const { data: authData, error: authError } = await supabase.auth.signUp({
+    //     email: formData.email,
+    //     password: formData.password,
+    //     options: {
+    //       emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || window.location.origin,
+    //       data: {
+    //         full_name: formData.fullName,
+    //         role: formData.role,
+    //       },
+    //     },
+    //   })
+
+    //   if (authError) throw authError
+    //   if (!authData.user) throw new Error("Registration failed")
+    // console.log("[v0] User registered:", authData.user.id)
 
     try {
       // Call the real Register API (Database + DID generation)
@@ -73,8 +103,50 @@ export function RegisterForm() {
         throw new Error(data.error || "Registration failed")
       }
 
+      // Generate Cardano ID
+      const cardanoId = `addr1q${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`
+
+    // Create user profile in database
+        //   const { data: profile, error: profileError } = await supabase
+        //     .from("users")
+        //     .insert({
+        //       id: authData.user.id,
+        //       full_name: formData.fullName,
+        //       email: formData.email,
+        //       role: formData.role,
+        //       nin: formData.nin,
+        //       nin_verified: false,
+        //       cardano_id: cardanoId,
+        //     })
+        //     .select()
+        //     .single()
+
+        //   if (profileError) {
+        //     console.error("[v0] Profile creation error:", profileError)
+        //     throw new Error("Failed to create user profile")
+        //   }
+
+        //   console.log("[v0] User profile created:", profile)
+
+        //   setUser(profile)
+
+        //   // Redirect based on role
+        //   if (formData.role === "citizen") {
+        //     router.push("/citizen/dashboard")
+        //   } else if (formData.role === "officer") {
+        //     router.push("/officer/dashboard")
+        //   } else if (formData.role === "auditor") {
+        //     router.push("/auditor/dashboard")
+        //   }
+        // } catch (err: any) {
+        //   console.error("[v0] Registration error:", err)
+        //   setError(err.message || "Failed to create account")
+        // } finally {
+        //   setLoading(false)
+        // }
+
       // Success: Save user to local storage and redirect
-      localStorage.setItem("civicchain_user", JSON.stringify(data))
+      localStorage.setItem("civicchain_user", JSON.stringify(data));
 
       if (formData.role === "citizen") {
         router.push("/citizen/dashboard")
@@ -124,6 +196,20 @@ export function RegisterForm() {
             disabled={loading}
             required
           />
+        </div>
+
+         <div className="space-y-2">
+          <Label htmlFor="nin">National Identification Number (NIN)</Label>
+          <Input
+            id="nin"
+            name="nin"
+            placeholder="12345678901"
+            value={formData.nin}
+            onChange={handleChange}
+            disabled={loading}
+            required
+          />
+          <p className="text-muted-foreground text-xs">11-digit NIN required for verification</p>
         </div>
 
         <div className="space-y-2">
