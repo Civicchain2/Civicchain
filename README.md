@@ -18,7 +18,6 @@ Live application: [https://civicchain-topaz.vercel.app/](https://civicchain-topa
 * Testing
 * Deployment
 * Contributing
-* License
 * Contact
 
 
