@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
           fullName,
           email,
           password: hashedPassword, // NOTE: In production, hash this password with bcrypt!
-           role: role.toUpperCase() as "CITIZEN" | "OFFICER" | "AUDITOR",
+          role: role.toUpperCase() as "CITIZEN" | "OFFICER" | "AUDITOR",
           didUri
         }
       });
