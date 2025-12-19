@@ -1,0 +1,124 @@
+// Prisma schema for CivicChain Identity Platform
+// Database: PostgreSQL (using Prisma Accelerate)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CITIZEN
+  OFFICER
+  AUDITOR
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+enum CredentialType {
+  IDENTITY
+  LICENSE
+  CERTIFICATE
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  fullName  String
+  password  String
+  role      UserRole
+  nin       String?   // Added National Identification Number field
+  didUri    String?
+  createdAt DateTime  @default(now())
+
+  transactions Transaction[]
+  credentials  Credential[]
+  verifications Verification[]
+
+  @@index([email])
+}
+
+model Transaction {
+  id          String              @id @default(uuid())
+  amount      String
+  description String
+  type        TransactionType
+  status      TransactionStatus
+  txHash      String
+  date        DateTime            @default(now())
+
+  userId      String
+  user        User                @relation(fields: [userId], references: [id])
+}
+
+model Credential {
+  id          String          @id @default(uuid())
+  type        CredentialType
+  name        String
+  issuer      String
+  verified    Boolean         @default(false)
+  hash        String
+  issuedDate  DateTime        @default(now())
+  expiryDate  DateTime?
+
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+}
+
+model Verification {
+  id        String             @id @default(uuid())
+  type      String
+  status    VerificationStatus @default(PENDING)
+  userId    String
+  documentHash String?
+  createdAt DateTime           @default(now())
+
+  user      User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// DIDComm connections (Identus wallet connections)
+model DidConnection {
+  id            String   @id @default(uuid())
+  connectionId  String   @unique
+  userId        String?
+  theirDid      String?
+  state         String   @default("invited")
+  invitation    String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([connectionId])
+  @@index([state])
+}
+
+// Session management for authentication
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([token])
+  @@index([userId])
+}

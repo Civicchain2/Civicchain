@@ -1,0 +1,7 @@
+[install]
+# Force exact versions to be used
+exact = true
+
+# Ensure Prisma versions are locked
+[install.scopes]
+"@prisma" = { exact = true }
